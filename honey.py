@@ -4,16 +4,18 @@ import json
 import os
 import random
 import time
+import sys
 
 # CONFIG --- Change these to experiment!
 GRID_SIZE = 5                   # GRID SIZE
-EPISODES = 5000                 # NUMBER OF "LIVES"/EPISODES TO RUN
+EPISODES = 100000                 # NUMBER OF "LIVES"/EPISODES TO RUN
 MAX_STEPS_PER_EPISODE = 200     # PREVENTS INFINATE LOOPS
 LEARNING_RATE = 0.001           # HOW FAST NURAL NET LEARNS, SLOWER MEANS MORE STABLE
 GAMMA = 0.95                    # HOW MUCH FUTURE REWARDS MATTER
 EPSILON_START = 1.0             # STARTS AT 100% RANDOM, (EXPLORATION)
 EPSILON_END = 0.05              # ENDS AT 5% RANDOM
 EPSILON_DECAY = 0.995           # HOW FAST EXPLORATION DECAYS
+PROGRESS_PRINT_EVERY = 10       # PRINT HEARTBEAT EVERY N EPISODES
 
 
 # ACTIONS! 0=up 1=down 2=left 3=right 4=stay
@@ -31,7 +33,8 @@ poison_pos = None
  # === Create or load the neural network ===
 def build_model():
     model = tf.keras.Sequential([
-        tf.keras.layers.Dense(32, activation='relu', input_shape=(STATE_SIZE,)),
+        tf.keras.Input(shape=(STATE_SIZE,)),
+        tf.keras.layers.Dense(32, activation='relu'),
         tf.keras.layers.Dense(16, activation='relu'),
         tf.keras.layers.Dense(NUM_ACTIONS, activation='linear')  # Q-values for each action
     ])
@@ -66,6 +69,19 @@ def load_state():
         print("Loaded existing world.")
     else:
         reset_world()
+
+def notify_completion(message):
+    # Terminal bell works on most terminals.
+    print("\a", end="")
+    print(message)
+
+    # Best effort Windows popup notification.
+    if os.name == 'nt':
+        try:
+            import ctypes
+            ctypes.windll.user32.MessageBoxW(0, message, "Honey Training", 0x40)
+        except Exception:
+            pass
 
 # === Reset world when starting new episode or no save exists ===
 def reset_world():
@@ -129,59 +145,87 @@ def step(action_idx):
 load_state()  # Try to resume if files exist
 
 epsilon = EPSILON_START
+start_time = time.time()
+episode_rewards = []
 
-for episode in range(EPISODES):
-    if episode % 50 == 0:
-        print(f"\nEpisode {episode} | Epsilon: {epsilon:.3f}")
-    
-    reset_world() if episode > 0 else None  # Only reset after first load
-    state = get_state()
-    total_reward = 0
-    step_count = 0
+completed = False
+last_episode = -1
 
-    for step_num in range(MAX_STEPS_PER_EPISODE):
-        step_count += 1
-        
-        # Epsilon-greedy action selection
-        if random.random() < epsilon:
-            action = random.randint(0, NUM_ACTIONS-1)  # Explore
-        else:
-            q_values = model.predict(state, verbose=0)[0]
-            action = np.argmax(q_values)  # Exploit
+try:
+    for episode in range(EPISODES):
+        if episode % 50 == 0:
+            print(f"\nEpisode {episode} | Epsilon: {epsilon:.3f}")
 
-        reward, done = step(action)
-        total_reward += reward
+        reset_world() if episode > 0 else None  # Only reset after first load
+        state = get_state()
+        total_reward = 0
+        step_count = 0
 
-        # Get next state
-        next_state = get_state()
+        for step_num in range(MAX_STEPS_PER_EPISODE):
+            step_count += 1
 
-        # Simple Q-update target: reward + discounted max future reward
-        if done:
-            target = reward
-        else:
-            next_q = model.predict(next_state, verbose=0)[0]
-            target = reward + GAMMA * np.max(next_q)
+            # Epsilon-greedy action selection
+            if random.random() < epsilon:
+                action = random.randint(0, NUM_ACTIONS-1)  # Explore
+            else:
+                q_values = model.predict(state, verbose=0)[0]
+                action = np.argmax(q_values)  # Exploit
 
-        # Prepare targets for training (only update the chosen action)
-        targets = model.predict(state, verbose=0)
-        targets[0][action] = target
+            reward, done = step(action)
+            total_reward += reward
 
-        # Train on this single step (online learning)
-        model.fit(state, targets, epochs=1, verbose=0)
+            # Get next state
+            next_state = get_state()
 
-        state = next_state
+            # Simple Q-update target: reward + discounted max future reward
+            if done:
+                target = reward
+            else:
+                next_q = model.predict(next_state, verbose=0)[0]
+                target = reward + GAMMA * np.max(next_q)
 
-        if done:
-            break
+            # Prepare targets for training (only update the chosen action)
+            targets = model.predict(state, verbose=0)
+            targets[0][action] = target
 
-    # Decay exploration
-    epsilon = max(EPSILON_END, epsilon * EPSILON_DECAY)
+            # Train on this single step (online learning)
+            model.fit(state, targets, epochs=1, verbose=0)
 
-    if episode % 20 == 0:
-        print(f"Episode {episode} finished | Reward: {total_reward:.2f} | Steps: {step_count}")
+            state = next_state
 
-    if episode % 200 == 0:
-        save_state()
+            if done:
+                break
 
-print("\nTraining finished. Agent saved.")
-save_state()
+        # Decay exploration
+        epsilon = max(EPSILON_END, epsilon * EPSILON_DECAY)
+        last_episode = episode
+        episode_rewards.append(total_reward)
+
+        if episode % 20 == 0:
+            print(f"Episode {episode} finished | Reward: {total_reward:.2f} | Steps: {step_count}")
+
+        if (episode + 1) % 50 == 0:
+            recent_rewards = episode_rewards[-50:]
+            avg_recent_reward = sum(recent_rewards) / len(recent_rewards)
+            print(f"Average reward (last {len(recent_rewards)} episodes): {avg_recent_reward:.3f}")
+
+        if episode % PROGRESS_PRINT_EVERY == 0:
+            elapsed = time.time() - start_time
+            episodes_done = episode + 1
+            avg_sec_per_episode = elapsed / episodes_done
+            eta_sec = max(0, (EPISODES - episodes_done) * avg_sec_per_episode)
+            print(f"Heartbeat | {episodes_done}/{EPISODES} episodes | Elapsed: {elapsed:.1f}s | ETA: {eta_sec:.1f}s")
+
+        if episode % 200 == 0:
+            save_state()
+
+    completed = True
+finally:
+    save_state()
+    elapsed_total = time.time() - start_time
+    if completed:
+        notify_completion(f"Training complete after {EPISODES} episodes in {elapsed_total:.1f}s. State saved.")
+        sys.exit(0)
+    else:
+        notify_completion(f"Training stopped around episode {last_episode + 1}. State saved before exit.")
+        sys.exit(1)
