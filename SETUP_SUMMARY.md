@@ -6,7 +6,7 @@ Your Honey Agent project has been refactored for maximum learnability and extens
 
 ### ✅ Completed
 
-1. **Modular Architecture** — Split monolithic `honey.py` into focused modules:
+1. **Modular Architecture** — Split monolithic `honey-Legacy.py` into focused modules:
    - `config.py` — Constants and hyperparameters
    - `environment.py` — World mechanics (positions, state, rewards)
    - `model.py` — Neural network (Q-learning function approximator)
@@ -51,7 +51,7 @@ honey/
 ├── QUICK_START.md              # 5-min onboarding
 ├── AGENT_LEARNING_GUIDE.md     # Study guide
 │
-├── honey.py                     # [Original monolithic version, still works]
+├── honey-Legacy.py              # [Legacy monolithic version, compatibility only]
 ├── agent_model.keras           # [Generated after training]
 ├── world_state.json            # [Generated after training]
 └── training_log.csv            # [Optional: add logging]

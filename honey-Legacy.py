@@ -239,5 +239,7 @@ def train(episodes=EPISODES):
 
 
 if __name__ == '__main__':
+    print("[legacy] honey.py is kept for backward compatibility.")
+    print("[legacy] Please use 'c:/python313/python.exe main.py' for the supported modular workflow.")
     result = train()
     sys.exit(0 if result['completed'] else 1)

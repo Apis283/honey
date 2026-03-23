@@ -20,7 +20,7 @@ Core Modules (each ~100-200 lines):
 └── main.py           CLI entry point with arguments
 
 Supporting:
-├── honey.py          [Original monolithic version, still works]
+├── honey-Legacy.py   [Legacy monolithic version, keep for compatibility only]
 └── test_honey.py     Unit tests (7 critical tests, all passing)
 ```
 
@@ -194,7 +194,7 @@ c:/python313/python.exe -c "import environment; environment.reset_world(); print
 
 | Traditional Single File | Your Modular Structure |
 |-------------------------|------------------------|
-| `honey.py` (400 lines) | 5 focused files (~50-100 lines each) |
+| `honey-Legacy.py` (400 lines) | 5 focused files (~50-100 lines each) |
 | Hard to isolate concepts | Each file teaches one idea |
 | Test everything together | Unit test individual components |
 | Difficult to extend | Add replay buffer without touching environment |

@@ -1,6 +1,6 @@
 # Honey Agent Learning Guide
 
-This guide is built for your current `honey.py` implementation.
+This guide is built for the modular implementation started from `main.py`.
 
 ## 1) Mental Model
 
@@ -28,7 +28,7 @@ $$
 Q(s,a) \leftarrow r
 $$
 
-## 2) File Walkthrough (`honey.py`)
+## 2) File Walkthrough (Modular)
 
 - Config constants:
   - Define experiment behavior (`EPISODES`, `GAMMA`, `EPSILON_*`, etc.).

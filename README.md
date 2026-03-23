@@ -191,11 +191,12 @@ honey/
 ├── config.py              # All constants (grid size, learning rates, etc.)
 ├── environment.py         # World mechanics (reset, get_state, step)
 ├── model.py              # Neural network (build_model)
+├── main.py               # Supported entry point
 ├── persistence.py        # Save/load state
 ├── train.py              # Training loop (train function)
 ├── test_honey.py         # Unit tests
 ├── AGENT_LEARNING_GUIDE.md  # Quick reference
-└── honey.py              # [Old monolithic version, optional]
+└── honey-Legacy.py       # Legacy compatibility script (not recommended)
 ```
 
 ### Key Design Principles

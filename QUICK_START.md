@@ -156,8 +156,8 @@ A: ~30-45 minutes on a modern CPU.
 **Q: Should I use the GPU?**  
 A: Not needed for this small grid. On Windows, TensorFlow uses CPU. (GPU setup requires WSL2.)
 
-**Q: Can I keep the old `honey.py`?**  
-A: Yes, it still works. Use `c:/python313/python.exe honey.py` to run it. The new modular version is cleaner.
+**Q: Can I keep the old `honey-Legacy.py`?**  
+A: Yes, but treat it as legacy-only. Use `c:/python313/python.exe main.py` as the supported way to run training.
 
 **Q: How do I plot learning curves?**  
 A: Add to `train.py`:
