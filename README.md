@@ -10,11 +10,12 @@ A machine learning project where an AI agent learns to navigate a grid, find foo
 2. [Core Concepts: Q-Learning in Plain English](#core-concepts-q-learning-in-plain-english)
 3. [How the Honey Agent Works](#how-the-honey-agent-works)
 4. [Project Structure](#project-structure)
-5. [How to Run the Agent](#how-to-run-the-agent)
-6. [Understanding the Code](#understanding-the-code)
-7. [How to Modify It](#how-to-modify-it)
-8. [Rebuilding From Scratch](#rebuilding-from-scratch)
-9. [Next Improvements](#next-improvements)
+5. [Environment Setup (Windows and Ubuntu 24)](#environment-setup-windows-and-ubuntu-24)
+6. [How to Run the Agent](#how-to-run-the-agent)
+7. [Understanding the Code](#understanding-the-code)
+8. [How to Modify It](#how-to-modify-it)
+9. [Rebuilding From Scratch](#rebuilding-from-scratch)
+10. [Next Improvements](#next-improvements)
 
 ---
 
@@ -205,6 +206,55 @@ honey/
 2. **Config-driven**: All hyperparameters in `config.py`.
 3. **Stateless functions**: Easier to test and reason about.
 4. **Global state**: `agent_pos`, `food_pos`, etc., in `environment.py` (simplified for learning).
+
+---
+
+## Environment Setup (Windows and Ubuntu 24)
+
+This project is designed to run on both Windows and Ubuntu using the same source code and dependency file.
+
+### Prerequisites
+
+- Python 3.13 (recommended for parity with your current environment)
+- pip
+- Git
+
+### Dependencies
+
+Dependencies are pinned in `requirements.txt`:
+
+- `tensorflow>=2.21,<2.22`
+- `numpy>=2.3,<3.0`
+
+### Windows Setup
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m unittest test_honey -v
+python main.py --episodes 100
+```
+
+### Ubuntu 24 Setup
+
+```bash
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m unittest test_honey -v
+python main.py --episodes 100
+```
+
+### Platform Notes
+
+- Windows only: optional popup notification is shown after training.
+- Ubuntu: popup is skipped automatically; terminal output remains identical.
+- Model and world save files (`agent_model.keras`, `world_state.json`) are portable across both OSes.
 
 ---
 

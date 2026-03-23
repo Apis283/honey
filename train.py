@@ -3,13 +3,12 @@ Training module: Main Q-learning training loop.
 """
 
 import os
-import sys
 import time
 import random
 import numpy as np
 from config import (
     EPISODES, MAX_STEPS_PER_EPISODE, EPSILON_START, EPSILON_END, 
-    EPSILON_DECAY, GAMMA, PROGRESS_PRINT_EVERY, CHECKPOINT_EVERY
+    EPSILON_DECAY, GAMMA, PROGRESS_PRINT_EVERY, CHECKPOINT_EVERY, NUM_ACTIONS
 )
 from model import get_model, initialize_model
 import environment
@@ -33,7 +32,6 @@ def train(episodes=EPISODES, verbose=True):
     """
     
     # Initialize
-    from config import NUM_ACTIONS
     initialize_model()
     persistence.load_state()
     
@@ -65,7 +63,6 @@ def train(episodes=EPISODES, verbose=True):
                 # === EPSILON-GREEDY ACTION SELECTION ===
                 if random.random() < epsilon:
                     # Explore: random action
-                    from config import NUM_ACTIONS
                     action = random.randint(0, NUM_ACTIONS - 1)
                 else:
                     # Exploit: best known action via Q-values
