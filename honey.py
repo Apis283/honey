@@ -30,7 +30,7 @@ agent_pos = None
 food_pos = None
 poison_pos = None
 
- # === Create or load the neural network ===
+# === Create or load the neural network ===
 def build_model():
     model = tf.keras.Sequential([
         tf.keras.Input(shape=(STATE_SIZE,)),
@@ -142,90 +142,102 @@ def step(action_idx):
     return reward, done
 
 # === Main training loop ===
-load_state()  # Try to resume if files exist
+def train(episodes=EPISODES):
+    load_state()  # Try to resume if files exist
 
-epsilon = EPSILON_START
-start_time = time.time()
-episode_rewards = []
+    epsilon = EPSILON_START
+    start_time = time.time()
+    episode_rewards = []
 
-completed = False
-last_episode = -1
+    completed = False
+    last_episode = -1
 
-try:
-    for episode in range(EPISODES):
-        if episode % 50 == 0:
-            print(f"\nEpisode {episode} | Epsilon: {epsilon:.3f}")
+    try:
+        for episode in range(episodes):
+            if episode % 50 == 0:
+                print(f"\nEpisode {episode} | Epsilon: {epsilon:.3f}")
 
-        reset_world() if episode > 0 else None  # Only reset after first load
-        state = get_state()
-        total_reward = 0
-        step_count = 0
+            reset_world() if episode > 0 else None  # Only reset after first load
+            state = get_state()
+            total_reward = 0
+            step_count = 0
 
-        for step_num in range(MAX_STEPS_PER_EPISODE):
-            step_count += 1
+            for step_num in range(MAX_STEPS_PER_EPISODE):
+                step_count += 1
 
-            # Epsilon-greedy action selection
-            if random.random() < epsilon:
-                action = random.randint(0, NUM_ACTIONS-1)  # Explore
-            else:
-                q_values = model.predict(state, verbose=0)[0]
-                action = np.argmax(q_values)  # Exploit
+                # Epsilon-greedy action selection
+                if random.random() < epsilon:
+                    action = random.randint(0, NUM_ACTIONS-1)  # Explore
+                else:
+                    q_values = model.predict(state, verbose=0)[0]
+                    action = np.argmax(q_values)  # Exploit
 
-            reward, done = step(action)
-            total_reward += reward
+                reward, done = step(action)
+                total_reward += reward
 
-            # Get next state
-            next_state = get_state()
+                # Get next state
+                next_state = get_state()
 
-            # Simple Q-update target: reward + discounted max future reward
-            if done:
-                target = reward
-            else:
-                next_q = model.predict(next_state, verbose=0)[0]
-                target = reward + GAMMA * np.max(next_q)
+                # Simple Q-update target: reward + discounted max future reward
+                if done:
+                    target = reward
+                else:
+                    next_q = model.predict(next_state, verbose=0)[0]
+                    target = reward + GAMMA * np.max(next_q)
 
-            # Prepare targets for training (only update the chosen action)
-            targets = model.predict(state, verbose=0)
-            targets[0][action] = target
+                # Prepare targets for training (only update the chosen action)
+                targets = model.predict(state, verbose=0)
+                targets[0][action] = target
 
-            # Train on this single step (online learning)
-            model.fit(state, targets, epochs=1, verbose=0)
+                # Train on this single step (online learning)
+                model.fit(state, targets, epochs=1, verbose=0)
 
-            state = next_state
+                state = next_state
 
-            if done:
-                break
+                if done:
+                    break
 
-        # Decay exploration
-        epsilon = max(EPSILON_END, epsilon * EPSILON_DECAY)
-        last_episode = episode
-        episode_rewards.append(total_reward)
+            # Decay exploration
+            epsilon = max(EPSILON_END, epsilon * EPSILON_DECAY)
+            last_episode = episode
+            episode_rewards.append(total_reward)
 
-        if episode % 20 == 0:
-            print(f"Episode {episode} finished | Reward: {total_reward:.2f} | Steps: {step_count}")
+            if episode % 20 == 0:
+                print(f"Episode {episode} finished | Reward: {total_reward:.2f} | Steps: {step_count}")
 
-        if (episode + 1) % 50 == 0:
-            recent_rewards = episode_rewards[-50:]
-            avg_recent_reward = sum(recent_rewards) / len(recent_rewards)
-            print(f"Average reward (last {len(recent_rewards)} episodes): {avg_recent_reward:.3f}")
+            if (episode + 1) % 50 == 0:
+                recent_rewards = episode_rewards[-50:]
+                avg_recent_reward = sum(recent_rewards) / len(recent_rewards)
+                print(f"Average reward (last {len(recent_rewards)} episodes): {avg_recent_reward:.3f}")
 
-        if episode % PROGRESS_PRINT_EVERY == 0:
-            elapsed = time.time() - start_time
-            episodes_done = episode + 1
-            avg_sec_per_episode = elapsed / episodes_done
-            eta_sec = max(0, (EPISODES - episodes_done) * avg_sec_per_episode)
-            print(f"Heartbeat | {episodes_done}/{EPISODES} episodes | Elapsed: {elapsed:.1f}s | ETA: {eta_sec:.1f}s")
+            if episode % PROGRESS_PRINT_EVERY == 0:
+                elapsed = time.time() - start_time
+                episodes_done = episode + 1
+                avg_sec_per_episode = elapsed / episodes_done
+                eta_sec = max(0, (episodes - episodes_done) * avg_sec_per_episode)
+                print(f"Heartbeat | {episodes_done}/{episodes} episodes | Elapsed: {elapsed:.1f}s | ETA: {eta_sec:.1f}s")
 
-        if episode % 200 == 0:
-            save_state()
+            if episode % 200 == 0:
+                save_state()
 
-    completed = True
-finally:
-    save_state()
-    elapsed_total = time.time() - start_time
-    if completed:
-        notify_completion(f"Training complete after {EPISODES} episodes in {elapsed_total:.1f}s. State saved.")
-        sys.exit(0)
-    else:
-        notify_completion(f"Training stopped around episode {last_episode + 1}. State saved before exit.")
-        sys.exit(1)
+        completed = True
+    finally:
+        save_state()
+        elapsed_total = time.time() - start_time
+        if completed:
+            notify_completion(f"Training complete after {episodes} episodes in {elapsed_total:.1f}s. State saved.")
+        else:
+            notify_completion(f"Training stopped around episode {last_episode + 1}. State saved before exit.")
+
+    return {
+        'completed': completed,
+        'last_episode': last_episode,
+        'episodes_ran': last_episode + 1,
+        'epsilon_final': epsilon,
+        'elapsed_seconds': time.time() - start_time
+    }
+
+
+if __name__ == '__main__':
+    result = train()
+    sys.exit(0 if result['completed'] else 1)
