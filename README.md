@@ -213,6 +213,14 @@ honey/
 
 This project is designed to run on both Windows and Ubuntu using the same source code and dependency file.
 
+### Cross-Platform Compatibility Promise
+
+- Supported OS: Windows 10/11 and Ubuntu 24+
+- Supported command style after activation: `python ...` for both OSes
+- Same codebase and model files work on both platforms
+- Optional Windows popup notifications are automatically skipped on Ubuntu
+- GPU is optional and platform-specific (CPU training works on both OSes by default)
+
 ### Prerequisites
 
 - Python 3.13 (recommended for parity with your current environment)
@@ -262,9 +270,8 @@ python main.py --episodes 100
 
 ### 1. Train the Agent
 
-```powershell
-cd c:\Users\Adam\OneDrive\Desktop\Techy\ stuff\Python\honey
-c:/python313/python.exe train.py
+```bash
+python main.py
 ```
 
 **What happens:**
@@ -286,25 +293,32 @@ Training complete after 100000 episodes in 1234.5s. State saved.
 
 ### 2. Train for Fewer Episodes (Quick Test)
 
-Create a quick test script `train_quick.py`:
-
-```python
-#!/usr/bin/env python3
-from train import train, notify_completion
-
-result = train(episodes=100, verbose=True)
-notify_completion(f"Quick train done: {result['episodes_ran']} episodes in {result['elapsed_seconds']:.1f}s")
+```bash
+python main.py --episodes 100
 ```
 
-Run:
+One-command startup scripts:
+
+- Windows PowerShell: `.\run_windows.ps1 -Episodes 100`
+- Ubuntu: `bash ./run_ubuntu.sh --episodes 100`
+
+If Windows blocks script execution, use:
+
 ```powershell
-c:/python313/python.exe train_quick.py
+powershell -ExecutionPolicy Bypass -File .\run_windows.ps1 -Episodes 100
+```
+
+On Ubuntu you can optionally make the script executable once:
+
+```bash
+chmod +x ./run_ubuntu.sh
+./run_ubuntu.sh --episodes 100
 ```
 
 ### 3. Run Unit Tests
 
-```powershell
-c:/python313/python.exe -m unittest discover -v
+```bash
+python -m unittest discover -v
 ```
 
 Tests:

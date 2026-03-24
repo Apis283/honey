@@ -49,8 +49,8 @@ Added file: `test_honey.py`
 
 Run:
 
-```powershell
-c:/python313/python.exe -m unittest -v
+```bash
+python -m unittest -v
 ```
 
 What these tests validate:

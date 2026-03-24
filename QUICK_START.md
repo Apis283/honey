@@ -8,11 +8,59 @@ A complete, modular Deep Q-Learning agent that learns to navigate a grid, find f
 
 ## Your First Run (5 Minutes)
 
-### Step 1: Train for 100 Episodes (Test Run)
+### Fastest Option: One Command Per OS
+
+Windows (PowerShell):
 
 ```powershell
-cd c:\Users\Adam\OneDrive\Desktop\Techy\ stuff\Python\honey
-c:/python313/python.exe main.py --episodes 100
+.\run_windows.ps1 -Episodes 100
+```
+
+If script execution is blocked by policy, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run_windows.ps1 -Episodes 100
+```
+
+Ubuntu:
+
+```bash
+bash ./run_ubuntu.sh 100
+```
+
+Optional (once):
+
+```bash
+chmod +x ./run_ubuntu.sh
+./run_ubuntu.sh --episodes 100
+```
+
+These scripts create `.venv` if needed, install dependencies, then train.
+
+### Step 0: Create and Activate a Virtual Environment
+
+Windows (PowerShell):
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+Ubuntu:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+### Step 1: Train for 100 Episodes (Test Run)
+
+```bash
+python main.py --episodes 100
 ```
 
 **Expected output:**
@@ -53,19 +101,29 @@ Read these in order (15 minutes total):
 
 ### Step 4: Run Tests
 
-```powershell
-c:/python313/python.exe -m unittest test_honey -v
+```bash
+python -m unittest test_honey -v
 ```
 
 You'll see 7 tests that verify agent mechanics work.
 
 ### Step 5: Train Longer (Optional)
 
-```powershell
-c:/python313/python.exe main.py --episodes 10000
+```bash
+python main.py --episodes 10000
 ```
 
 This takes ~10 minutes. Watch the reward moving average increase (learning!).
+
+Optional scripted runs:
+
+- Windows: `.\run_windows.ps1 -Episodes 10000 -Quiet`
+- Ubuntu: `bash ./run_ubuntu.sh --episodes 10000 --quiet`
+
+Script help:
+
+- Windows: `.\run_windows.ps1 -Help`
+- Ubuntu: `bash ./run_ubuntu.sh --help`
 
 ---
 
@@ -82,12 +140,12 @@ This takes ~10 minutes. Watch the reward moving average increase (learning!).
 
 **Experiment 1: Make food more valuable**
 - Edit `config.py`: `REWARD_FOOD = 2.0`
-- Run: `c:/python313/python.exe main.py --episodes 500`
+- Run: `python main.py --episodes 500`
 - Do you learn faster?
 
 **Experiment 2: Make the grid bigger**
 - Edit `config.py`: `GRID_SIZE = 10`
-- Run: `c:/python313/python.exe main.py --episodes 1000`
+- Run: `python main.py --episodes 1000`
 - Much harder? Add more hidden units?
 
 **Experiment 3: Reduce exploration**
@@ -107,8 +165,8 @@ This is the best way to truly own the codebase.
 ### "ModuleNotFoundError: No module named 'tensorflow'"
 
 Run:
-```powershell
-c:/python313/python.exe -m pip install tensorflow
+```bash
+python -m pip install tensorflow
 ```
 
 ### "No such file or directory: agent_model.keras"
@@ -118,8 +176,8 @@ That's normal on first run. The model is created fresh.
 ### Training is very slow
 
 Add `--quiet` flag to reduce printing overhead:
-```powershell
-c:/python313/python.exe main.py --episodes 10000 --quiet
+```bash
+python main.py --episodes 10000 --quiet
 ```
 
 ### Nothing is changing (reward stays at -0.01)
@@ -154,10 +212,34 @@ The agent is just exploring randomly. This is normal at first. After ~1,000 epis
 A: ~30-45 minutes on a modern CPU.
 
 **Q: Should I use the GPU?**  
-A: Not needed for this small grid. On Windows, TensorFlow uses CPU. (GPU setup requires WSL2.)
+A: Not required for this small grid, but you can use one. On Windows, official TensorFlow GPU support is via **WSL2 (Ubuntu)**.
+
+Quick setup:
+
+```powershell
+# In an elevated PowerShell
+wsl --install
+```
+
+Then inside Ubuntu (WSL):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+python main.py --episodes 1000 --quiet
+```
+
+When GPU is active, startup now prints:
+
+```text
+TensorFlow device: GPU (... detected)
+```
 
 **Q: Can I keep the old `honey-Legacy.py`?**  
-A: Yes, but treat it as legacy-only. Use `c:/python313/python.exe main.py` as the supported way to run training.
+A: Yes, but treat it as legacy-only. Use `python main.py` as the supported way to run training.
 
 **Q: How do I plot learning curves?**  
 A: Add to `train.py`:
